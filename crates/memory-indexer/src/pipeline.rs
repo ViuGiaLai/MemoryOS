@@ -9,6 +9,10 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
 
+/// Shared flag for controlling the indexing process.
+/// Pass an external `running` flag to allow cancellation from outside.
+pub type RunningFlag = Arc<AtomicBool>;
+
 /// Coordinates the full indexing pipeline.
 pub struct IndexingPipeline {
     db: Arc<Database>,
@@ -35,6 +39,23 @@ impl IndexingPipeline {
             relation: None,
             timeline: None,
             running: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    /// Create a pipeline with a shared `running` flag.
+    /// This allows external cancellation via `stop()` from another thread.
+    pub fn new_with_running(db: Arc<Database>, search: SearchEngine, running: RunningFlag) -> Self {
+        let config = ScanConfig::default();
+        Self {
+            db,
+            scanner: FileScanner::new(config),
+            extractor: TextExtractor::new(),
+            search,
+            embedder: None,
+            graph: None,
+            relation: None,
+            timeline: None,
+            running,
         }
     }
 

@@ -3,6 +3,7 @@ use log::error;
 use rusqlite::{params, Connection};
 
 /// Full-text and semantic search engine.
+#[derive(Clone)]
 pub struct SearchEngine {
     config: SearchConfig,
 }
